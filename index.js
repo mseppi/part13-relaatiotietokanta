@@ -1,65 +1,23 @@
-require('dotenv').config();
-
-const { Sequelize, Model, DataTypes } = require('sequelize')
 const express = require('express')
 const app = express()
+
+const { PORT } = require('./util/config')
+const { connectToDatabase } = require('./util/db')
+
+const blogsRouter = require('./controllers/blogs')
+const { errorHandler } = require('./util/middleware')
+
 app.use(express.json())
 
-const sequelize = new Sequelize(process.env.DATABASE_URL)
+app.use('/api/blogs', blogsRouter)
 
-class Blog extends Model {}
+app.use(errorHandler)
 
-Blog.init({
-    id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
-    },
-    author: {
-        type: DataTypes.STRING,
-    },
-    url: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    title: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    likes: {
-        type: DataTypes.INTEGER,
-        defaultValue: 0
-    }
-}, {
-        sequelize,
-        underscored: true,
-        timestamps: false,
-        modelName: 'blog'
-    })
-Blog.sync()
-
-app.get('/api/blogs', async (req, res) => {
-    const blogs = await Blog.findAll()
-    res.json(blogs)
-})
-
-app.post('/api/blogs', async (req, res) => {
-    console.log(req.body)
-    const blog = await Blog.create(req.body)
-    res.json(blog)
-})
-
-app.delete('/api/blogs/:id', async (req, res) => {
-    const id = req.params.id
-    await Blog.destroy({
-        where: {
-            id: id
-        }
-    })
-    res.status(204).end()
-})
-
-const PORT = process.env.PORT || 3001
-app.listen(PORT, () => {
+const start = async () => {
+  await connectToDatabase()
+  app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
-})
+  })
+}
+
+start()
