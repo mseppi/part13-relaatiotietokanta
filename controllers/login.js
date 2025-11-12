@@ -28,6 +28,11 @@ router.post('/', async (request, response) => {
 
   const token = jwt.sign(userForToken, SECRET)
 
+  const crypto = require('crypto')
+  const { Session } = require('../models')
+  const tokenHash = crypto.createHash('sha256').update(token).digest('hex')
+  await Session.create({ userId: user.id, tokenHash })
+
   response
     .status(200)
     .send({ token, username: user.username, name: user.name })

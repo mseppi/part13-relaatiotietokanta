@@ -1,14 +1,21 @@
 const { NotBeforeError } = require('jsonwebtoken')
 const Blog = require('./blog')
 const User = require('./user')
+const ReadingList = require('./readinglist')
+const Session = require('./session')
 
 User.hasMany(Blog)
 Blog.belongsTo(User)
 
-Blog.sync({ alter: true })
-User.sync({ alter: true })
+User.belongsToMany(Blog, { through: ReadingList, as: 'readinglists' })
+Blog.belongsToMany(User, { through: ReadingList, as: 'readers' })
+
+User.hasMany(Session)
+Session.belongsTo(User)
 
 module.exports = {
   Blog,
-  User
+  User,
+  ReadingList,
+  Session
 }
